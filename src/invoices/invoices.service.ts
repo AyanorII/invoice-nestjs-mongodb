@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
+import { Invoice } from './schemas/invoice.schema';
 
 @Injectable()
 export class InvoicesService {
-  create(createInvoiceDto: CreateInvoiceDto) {
-    return 'This action adds a new invoice';
+  constructor(
+    @InjectModel('Invoice') private readonly invoiceModel: Model<Invoice>,
+  ) {}
+
+  async create(createInvoiceDto: CreateInvoiceDto): Promise<Invoice> {
+    const invoice = new this.invoiceModel(createInvoiceDto);
+    return invoice.save();
   }
 
   findAll() {
