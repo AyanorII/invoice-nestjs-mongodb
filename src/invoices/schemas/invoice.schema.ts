@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 import { Address, AddressSchema } from './address.schema';
 import { Client, ClientSchema } from './client.schema';
 import { Item, ItemSchema } from './item.schema';
@@ -10,7 +11,17 @@ export enum InvoicePaymentTerms {
   ONE_MONTH = 30,
 }
 
-@Schema()
+export enum InvoiceStatus {
+  DRAFT = 'draft',
+  PENDING = 'pending',
+  PAID = 'paid',
+}
+
+const DEFAULT_PAYMENT_TERMS = InvoicePaymentTerms.ONE_WEEK;
+const DEFAULT_STATUS = InvoiceStatus.PENDING;
+@Schema({
+  timestamps: true,
+})
 export class Invoice extends Document {
   @Prop({ required: true, index: true, unique: true })
   code: string;
@@ -18,17 +29,18 @@ export class Invoice extends Document {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ required: true })
-  paymentTerms: number;
+  @Prop({
+    required: true,
+    enum: InvoicePaymentTerms,
+    default: DEFAULT_PAYMENT_TERMS,
+  })
+  paymentTerms: InvoicePaymentTerms;
 
-  @Prop({ required: true, enum: InvoicePaymentTerms })
-  status: number;
+  @Prop({ required: true, enum: InvoiceStatus, default: DEFAULT_STATUS })
+  status: InvoiceStatus;
 
   @Prop({ required: true })
   total: number;
-
-  @Prop({ required: true })
-  createdAt: Date;
 
   @Prop({ required: true })
   paymentDue: Date;

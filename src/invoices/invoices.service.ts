@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
-import { Invoice } from './schemas/invoice.schema';
+import { Invoice, InvoicePaymentTerms } from './schemas/invoice.schema';
 
 @Injectable()
 export class InvoicesService {
@@ -12,8 +12,16 @@ export class InvoicesService {
   ) {}
 
   async create(createInvoiceDto: CreateInvoiceDto): Promise<Invoice> {
-    const invoice = new this.invoiceModel(createInvoiceDto);
-    return invoice.save();
+    try {
+      const invoice = new this.invoiceModel(createInvoiceDto);
+
+      const paymentDue = this.#getPaymentDue(createInvoiceDto.paymentTerms);
+      invoice.paymentDue = paymentDue;
+
+      return invoice.save();
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   findAll() {
@@ -30,5 +38,11 @@ export class InvoicesService {
 
   remove(id: number) {
     return `This action removes a #${id} invoice`;
+  }
+
+  #getPaymentDue(days: InvoicePaymentTerms): Date {
+    const currentDate = new Date();
+
+    return new Date(currentDate.getTime() + days * 24 * 60 * 60 * 1000);
   }
 }
