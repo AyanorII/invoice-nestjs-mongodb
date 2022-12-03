@@ -32,13 +32,16 @@ export class InvoicesController {
     return this.invoicesService.findOneByInvoiceCode(code);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
-    return this.invoicesService.update(+id, updateInvoiceDto);
+  @Patch(':code')
+  update(
+    @Param('code') code: string,
+    @Body() updateInvoiceDto: UpdateInvoiceDto,
+  ) {
+    return this.invoicesService.update(code, updateInvoiceDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.invoicesService.remove(+id);
+  @Delete(':code')
+  remove(@Param('code') code: string) {
+    return this.invoicesService.remove(code);
   }
 }

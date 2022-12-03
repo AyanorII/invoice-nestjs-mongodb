@@ -45,12 +45,25 @@ export class InvoicesService {
     return invoice;
   }
 
-  update(id: number, updateInvoiceDto: UpdateInvoiceDto) {
-    return `This action updates a #${id} invoice`;
+  async update(
+    code: string,
+    updateInvoiceDto: UpdateInvoiceDto,
+  ): Promise<Invoice> {
+    try {
+      const invoice = await this.invoiceModel
+        .findOneAndUpdate({ code }, updateInvoiceDto, {
+          new: true,
+        })
+        .exec();
+      return invoice;
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} invoice`;
+  remove(code: string) {
+    return `This action removes a #${code} invoice`;
   }
 
   /* --------------------------- Private methods ---------------------------- */
@@ -67,7 +80,9 @@ export class InvoicesService {
     const invoice = await this.invoiceModel.findOne({ [field]: value }).exec();
 
     if (!invoice) {
-      throw new NotFoundException(`Invoice with ${field}: ${value} not found`);
+      throw new NotFoundException(
+        `Invoice with '${field}': ${value} not found`,
+      );
     }
 
     return invoice;
