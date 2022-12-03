@@ -27,9 +27,9 @@ export class InvoicesController {
     return this.invoicesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.invoicesService.findOne(+id);
+  @Get(':code')
+  findOne(@Param('code') code: string) {
+    return this.invoicesService.findOneByInvoiceCode(code);
   }
 
   @Patch(':id')

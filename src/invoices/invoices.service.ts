@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { createAlphabet, createNumbers, sample } from 'src/lib/helpers';
@@ -15,7 +19,7 @@ export class InvoicesService {
     try {
       const invoice = new this.invoiceModel(createInvoiceDto);
 
-      invoice.code = this.#generateInvoiceCode();
+      invoice.code = await this.#generateInvoiceCode();
       const paymentDue = this.#getPaymentDue(createInvoiceDto.paymentTerms);
       invoice.paymentDue = paymentDue;
 
@@ -31,8 +35,14 @@ export class InvoicesService {
     return invoices;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} invoice`;
+  async findOneById(id: string): Promise<Invoice> {
+    const invoice = await this.#findOneBy('id', id);
+    return invoice;
+  }
+
+  async findOneByInvoiceCode(code: string): Promise<Invoice> {
+    const invoice = await this.#findOneBy('code', code);
+    return invoice;
   }
 
   update(id: number, updateInvoiceDto: UpdateInvoiceDto) {
@@ -44,9 +54,27 @@ export class InvoicesService {
   }
 
   /* --------------------------- Private methods ---------------------------- */
+  /**
+   * Find one invoice by a given field
+   * @param field - The field to search by (ID or invoice code)
+   * @param value - The value to search for (ID or invoice code)
+   * @returns The invoice if found, otherwise throws a NotFoundException
+   * @throws NotFoundException
+   * @private
+   * @memberof InvoicesService
+   */
+  async #findOneBy(field: 'id' | 'code', value: string): Promise<Invoice> {
+    const invoice = await this.invoiceModel.findOne({ [field]: value }).exec();
+
+    if (!invoice) {
+      throw new NotFoundException(`Invoice with ${field}: ${value} not found`);
+    }
+
+    return invoice;
+  }
+
   #getPaymentDue(days: InvoicePaymentTerms): Date {
     const currentDate = new Date();
-
     return new Date(currentDate.getTime() + days * 24 * 60 * 60 * 1000);
   }
 
@@ -60,7 +88,7 @@ export class InvoicesService {
    * @method
    * @name generateInvoiceCode
    */
-  #generateInvoiceCode(): string {
+  async #generateInvoiceCode(): Promise<string> {
     const alphabet = createAlphabet();
     const codeLetters = sample(alphabet) + sample(alphabet);
 
@@ -68,6 +96,18 @@ export class InvoicesService {
     const codeNumbers: string[] = [];
     for (let i = 0; i < 4; i++) {
       codeNumbers.push(`${sample(numbers)}`);
+    }
+
+    const invoiceCode = codeLetters + codeNumbers.join('');
+
+    const invoiceAlreadyExists = await this.invoiceModel
+      .findOne({
+        code: invoiceCode,
+      })
+      .exec();
+
+    if (invoiceAlreadyExists) {
+      return this.#generateInvoiceCode();
     }
 
     return `${codeLetters}${codeNumbers.join('')}`;
