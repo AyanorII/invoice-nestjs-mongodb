@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -40,6 +42,7 @@ export class InvoicesController {
     return this.invoicesService.update(code, updateInvoiceDto);
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':code')
   remove(@Param('code') code: string) {
     return this.invoicesService.remove(code);

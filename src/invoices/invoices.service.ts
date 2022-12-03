@@ -35,13 +35,13 @@ export class InvoicesService {
     return invoices;
   }
 
-  async findOneById(id: string): Promise<Invoice> {
-    const invoice = await this.#findOneBy('id', id);
-    return invoice;
-  }
-
   async findOneByInvoiceCode(code: string): Promise<Invoice> {
-    const invoice = await this.#findOneBy('code', code);
+    const invoice = await this.invoiceModel.findOne({ code }).exec();
+
+    if (!invoice) {
+      throw new NotFoundException(`Invoice with code: '${code}' not found`);
+    }
+
     return invoice;
   }
 
@@ -49,44 +49,27 @@ export class InvoicesService {
     code: string,
     updateInvoiceDto: UpdateInvoiceDto,
   ): Promise<Invoice> {
-    try {
-      const invoice = await this.invoiceModel
-        .findOneAndUpdate({ code }, updateInvoiceDto, {
-          new: true,
-        })
-        .exec();
-      return invoice;
-    } catch (error) {
-      console.log(error);
-      throw new BadRequestException(error);
-    }
-  }
+    const invoice = await this.invoiceModel
+      .findOneAndUpdate({ code }, updateInvoiceDto, {
+        new: true,
+      })
+      .exec();
 
-  remove(code: string) {
-    return `This action removes a #${code} invoice`;
-  }
-
-  /* --------------------------- Private methods ---------------------------- */
-  /**
-   * Find one invoice by a given field
-   * @param field - The field to search by (ID or invoice code)
-   * @param value - The value to search for (ID or invoice code)
-   * @returns The invoice if found, otherwise throws a NotFoundException
-   * @throws NotFoundException
-   * @private
-   * @memberof InvoicesService
-   */
-  async #findOneBy(field: 'id' | 'code', value: string): Promise<Invoice> {
-    const invoice = await this.invoiceModel.findOne({ [field]: value }).exec();
-
-    if (!invoice) {
-      throw new NotFoundException(
-        `Invoice with '${field}': ${value} not found`,
-      );
-    }
+    if (!invoice)
+      throw new NotFoundException(`Invoice with code ${code} not found`);
 
     return invoice;
   }
+
+  async remove(code: string): Promise<void> {
+    const result = await this.invoiceModel.deleteOne({ code }).exec();
+
+    if (result.deletedCount === 0) {
+      throw new NotFoundException(`Invoice with code ${code} not found`);
+    }
+  }
+
+  /* --------------------------- Private methods ---------------------------- */
 
   #getPaymentDue(days: InvoicePaymentTerms): Date {
     const currentDate = new Date();
