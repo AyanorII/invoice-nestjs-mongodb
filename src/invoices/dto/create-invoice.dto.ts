@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsObject,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -14,11 +15,6 @@ import { ClientDto } from './client.dto';
 import { ItemDto } from './item.dto';
 
 export class CreateInvoiceDto {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  readonly code: string;
-
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -37,11 +33,13 @@ export class CreateInvoiceDto {
   readonly total: number;
 
   @ApiProperty()
+  @IsObject()
   @ValidateNested()
   @Type(() => ClientDto)
   readonly client: ClientDto;
 
   @ApiProperty()
+  @IsObject()
   @ValidateNested()
   @Type(() => AddressDto)
   readonly sender: AddressDto;
