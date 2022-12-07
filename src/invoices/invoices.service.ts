@@ -69,6 +69,10 @@ export class InvoicesService {
     }
   }
 
+  async _destroyAll(): Promise<void> {
+    await this.invoiceModel.deleteMany({});
+  }
+
   /* --------------------------- Private methods ---------------------------- */
 
   #getPaymentDue(days: InvoicePaymentTerms): Date {
