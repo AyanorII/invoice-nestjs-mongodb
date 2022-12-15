@@ -51,18 +51,21 @@ export class InvoicesService {
     code: string,
     updateInvoiceDto: UpdateInvoiceDto,
   ): Promise<Invoice> {
-    console.log(updateInvoiceDto);
     const { createdAt, paymentTerms } = updateInvoiceDto;
 
-    const paymentDue = this.#getPaymentDue(new Date(createdAt), paymentTerms);
+    const body: any = {
+      ...updateInvoiceDto,
+    };
+
+    if (createdAt && paymentTerms) {
+      const paymentDue = this.#getPaymentDue(new Date(createdAt), paymentTerms);
+      body.paymentDue = paymentDue;
+    }
+
     const invoice = await this.invoiceModel
-      .findOneAndUpdate(
-        { code },
-        { ...updateInvoiceDto, paymentDue },
-        {
-          new: true,
-        },
-      )
+      .findOneAndUpdate({ code }, body, {
+        new: true,
+      })
       .exec();
 
     if (!invoice)
