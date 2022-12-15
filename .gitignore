@@ -36,3 +36,4 @@ lerna-debug.log*
 
 # Env Variables
 .env
+.vscode/settings.json
