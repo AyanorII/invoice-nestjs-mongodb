@@ -12,3 +12,10 @@ export const sample = (array: any[]): number => {
   const index = Math.floor(Math.random() * array.length);
   return array[index];
 };
+
+export const getRandomDate = (startDate: Date, endDate: Date) => {
+  return new Date(
+    startDate.getTime() +
+      Math.random() * (endDate.getTime() - startDate.getTime()),
+  );
+};

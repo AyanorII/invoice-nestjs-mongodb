@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsDateString,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -31,6 +32,10 @@ export class CreateInvoiceDto {
   @ApiProperty()
   @IsNumber()
   readonly total: number;
+
+  @ApiProperty()
+  @IsDateString()
+  readonly createdAt: string;
 
   @ApiProperty()
   @IsObject()

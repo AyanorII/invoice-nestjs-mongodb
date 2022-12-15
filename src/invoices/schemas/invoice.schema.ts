@@ -53,6 +53,9 @@ export class Invoice extends Document {
 
   @Prop({ required: true, type: [ItemSchema] })
   items: Item[];
+
+  @Prop({ required: true })
+  createdAt: Date;
 }
 
 export const InvoiceSchema = SchemaFactory.createForClass(Invoice);

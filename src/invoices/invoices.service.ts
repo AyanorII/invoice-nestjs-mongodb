@@ -16,11 +16,13 @@ export class InvoicesService {
   ) {}
 
   async create(createInvoiceDto: CreateInvoiceDto): Promise<Invoice> {
+    const { createdAt, paymentTerms } = createInvoiceDto;
+
     try {
       const invoice = new this.invoiceModel(createInvoiceDto);
-
       invoice.code = await this.#generateInvoiceCode();
-      const paymentDue = this.#getPaymentDue(createInvoiceDto.paymentTerms);
+      invoice.createdAt = new Date(createdAt);
+      const paymentDue = this.#getPaymentDue(new Date(createdAt), paymentTerms);
       invoice.paymentDue = paymentDue;
 
       return invoice.save();
@@ -49,10 +51,18 @@ export class InvoicesService {
     code: string,
     updateInvoiceDto: UpdateInvoiceDto,
   ): Promise<Invoice> {
+    console.log(updateInvoiceDto);
+    const { createdAt, paymentTerms } = updateInvoiceDto;
+
+    const paymentDue = this.#getPaymentDue(new Date(createdAt), paymentTerms);
     const invoice = await this.invoiceModel
-      .findOneAndUpdate({ code }, updateInvoiceDto, {
-        new: true,
-      })
+      .findOneAndUpdate(
+        { code },
+        { ...updateInvoiceDto, paymentDue },
+        {
+          new: true,
+        },
+      )
       .exec();
 
     if (!invoice)
@@ -75,9 +85,8 @@ export class InvoicesService {
 
   /* --------------------------- Private methods ---------------------------- */
 
-  #getPaymentDue(days: InvoicePaymentTerms): Date {
-    const currentDate = new Date();
-    return new Date(currentDate.getTime() + days * 24 * 60 * 60 * 1000);
+  #getPaymentDue(createdAt: Date, days: InvoicePaymentTerms): Date {
+    return new Date(createdAt.getTime() + days * 24 * 60 * 60 * 1000);
   }
 
   /**
