@@ -7,10 +7,12 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors();
-
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
+
+  app.enableCors({
+    origin: configService.get('CORS_ORIGIN'),
+  });
 
   const config = new DocumentBuilder().setTitle('Invoice API').build();
   const document = SwaggerModule.createDocument(app, config);
@@ -23,4 +25,5 @@ async function bootstrap() {
   await app.listen(port);
   logger.log(`Listening on port ${port}`);
 }
+
 bootstrap();
